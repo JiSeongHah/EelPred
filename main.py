@@ -12,8 +12,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import csv
+from torch.nn import L1Loss
 from sklearn.metrics import f1_score
-
+from MY_MODELS import EelPredCNNModel
 
 class EelPredictor(nn.Module):
     def __init__(self,
@@ -57,9 +58,11 @@ class EelPredictor(nn.Module):
 
         ###################MODEL SETTING###########################
         print('failed loading model, loaded fresh model')
-        self.EelModel = simpleDNN(
-            innerNum= self.innerNum
-            )
+        self.EelModel = EelPredCNNModel(
+            modelKind='resnet50',
+            backboneOutFeature=50,
+            LinNum=25
+        )
 
         #self.EelModel = nn.Linear(2,10)
 
@@ -110,24 +113,18 @@ class EelPredictor(nn.Module):
         self.EelModel.to(device=self.device)
 
 
-
     def forward(self,x):
 
-        print(x.size())
-
         out = self.EelModel(x)
-
-        print(out.size())
 
         return out
 
 
     def calLoss(self,logit,label):
 
-        print(logit.type())
-        print(label.type())
 
-        loss = MSELoss()
+        #loss = MSELoss()
+        loss = L1Loss()
 
         return loss(logit,label)
 
@@ -143,6 +140,8 @@ class EelPredictor(nn.Module):
             globalTime= time.time()
 
             for _,bInput, bLabel  in self.trainDataloader:
+
+                #print(bLabel.size())
 
                 bLabel = bLabel.float()
                 localTime= time.time()
@@ -310,17 +309,17 @@ if __name__ == '__main__':
 
     innerNum = 2
     MaxEpoch= 10
-    iter_to_accumul = 2
+    iter_to_accumul = 10
     MaxStep = 25
     MaxStepVal = 10000
-    bSizeTrn = 16
-    save_range= 5
-    modelLoadNum = 400
+    bSizeTrn =  2
+    save_range= 10
+    modelLoadNum = 200
     CROP = False
-    gpuUse = False
+    gpuUse = True
 
 
-    savingDir = mk_name(innerNum=innerNum,bS=bSizeTrn,iter=iter_to_accumul)
+    savingDir = mk_name(model='resnet50',innerNum=innerNum,bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
     modelPlotSaveDir = baseDir +savingDir + '/'
     createDirectory(modelPlotSaveDir)
 
@@ -345,42 +344,42 @@ if __name__ == '__main__':
             bSizeVal=10, lr=3e-4, eps=1e-9)
 
 
-    #MODEL_START.TestStep()
+    MODEL_START.TestStep()
 
-    for i in range(10000):
-        MODEL_START.START_TRN_VAL()
-
-        if i%save_range ==0:
-            if i > 15000:
-                break
-
-            try:
-                torch.save(MODEL_START, modelPlotSaveDir + str(i) + '.pth')
-                print('saving model complete')
-                print('saving model complete')
-                print('saving model complete')
-                print('saving model complete')
-                print('saving model complete')
-                time.sleep(5)
-            except:
-                print('saving model failed')
-                print('saving model failed')
-                print('saving model failed')
-                print('saving model failed')
-                print('saving model failed')
-                time.sleep(5)
-
-
-
-
-
-
-
-
-
-
-
-
+    # for i in range(10000):
+    #     MODEL_START.START_TRN_VAL()
+    #
+    #     if i%save_range ==0:
+    #         if i > 15000:
+    #             break
+    #
+    #         try:
+    #             torch.save(MODEL_START, modelPlotSaveDir + str(i) + '.pth')
+    #             print('saving model complete')
+    #             print('saving model complete')
+    #             print('saving model complete')
+    #             print('saving model complete')
+    #             print('saving model complete')
+    #             time.sleep(5)
+    #         except:
+    #             print('saving model failed')
+    #             print('saving model failed')
+    #             print('saving model failed')
+    #             print('saving model failed')
+    #             print('saving model failed')
+    #             time.sleep(5)
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    # #
+    #
+    #
+    #
+    #
 
 
 

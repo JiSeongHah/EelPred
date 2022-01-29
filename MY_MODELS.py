@@ -275,14 +275,52 @@ class Datacon1model(nn.Module):
 
 
     def forward(self,x):
+        print(1)
 
         out = self.backbone(x)
+        print(2)
         out = F.relu(self.lin1(out))
+        print(3)
         out = F.relu(self.lin2(out))
+        print(4)
         out = F.relu(self.lin3(out))
+        print(5)
         out = self.lin4(out)
 
         return out
+
+class EelPredCNNModel(nn.Module):
+    def __init__(self,modelKind,backboneOutFeature, LinNum):
+        super(EelPredCNNModel,self).__init__()
+
+        if modelKind == 'resnet18':
+            self.backbone = ResNetBackbone(block=BasicBlock,num_blocks=[2,2,2,2],last_out_feature=backboneOutFeature)
+        elif modelKind == 'resnet34':
+            self.backbone = ResNetBackbone(block=BasicBlock,num_blocks=[3,4,6,3],last_out_feature=backboneOutFeature)
+        elif modelKind == 'resnet50':
+            self.backbone = ResNetBackbone(block=BottleNeck,num_blocks=[3,4,6,3],last_out_feature=backboneOutFeature)
+        elif modelKind == 'resnet101':
+            self.backbone = ResNetBackbone(block=BottleNeck,num_blocks=[3,4,23,3],last_out_feature=backboneOutFeature)
+        else:
+            self.backbone = ResNetBackbone(block=BottleNeck,num_blocks=[3,8,36,3],last_out_feature=backboneOutFeature)
+
+        self.backboneOutFeature = backboneOutFeature
+
+        self.lin1 = nn.Linear(in_features=backboneOutFeature,out_features=LinNum)
+        self.lin2 = nn.Linear(in_features=LinNum, out_features= 1)
+
+
+
+    def forward(self,x):
+
+        out = self.backbone(x)
+        out = F.relu(self.lin1(out))
+        out = self.lin2(out)
+        print(out.size())
+
+
+        return out
+
 
 
 

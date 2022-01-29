@@ -86,18 +86,18 @@ class EelPredictor(nn.Module):
 
 
         for idx,i in enumerate(MyTrnDataset):
-            print(f'appending {idx}th/{len(MyTrnDataset)} data into trainset')
+            #print(f'appending {idx}th/{len(MyTrnDataset)} data into trainset')
             self.TrnX.append(i[1].numpy())
             self.TrnY.append(i[2].numpy())
             #print(self.TrnX[-1],self.TrnY[-1])
 
         for i in MyValDataset:
-            print(f'appending {idx}th/{len(MyValDataset)} data into validation set')
+            #print(f'appending {idx}th/{len(MyValDataset)} data into validation set')
             self.TrnX.append(i[1].numpy())
             self.TrnY.append(i[2].numpy())
 
         for i in MyTestDataset:
-            print(f'appending {idx}th/{len(MyTestDataset)} data into Test set')
+            #print(f'appending {idx}th/{len(MyTestDataset)} data into Test set')
             self.TesX.append(i[1].numpy())
             self.TesName.append(i[0])
 
@@ -120,28 +120,33 @@ class EelPredictor(nn.Module):
         if self.svrKernel == 'poly':
             self.model = SVR(kernel=self.svrKernel, C=self.svrC, epsilon=self.svrEps,gamma=self.svrGamma,degree=self.svrDg)
 
-        print(self.TrnX,self.TrnY)
+        #print(self.TrnX,self.TrnY)
 
     def DataAug(self,DataXLst,DataYLst,ratioLst,newDataNum):
-
 
         for i in range(newDataNum):
             for ratio in ratioLst:
                 randNum = np.random.choice(len(DataXLst),2)
 
-                newDataX = DataXLst[randNum[0]]*ratio + DataXLst[randNum[1]]*(1-ratio)
-                newDataY = DataYLst[randNum[0]]*ratio + DataYLst[randNum[1]]*(1-ratio)
+                newDataX = (DataXLst[randNum[0]]*ratio + DataXLst[randNum[1]]*(1-ratio))
+                newDataY = (DataYLst[randNum[0]]*ratio + DataYLst[randNum[1]]*(1-ratio))
 
                 DataXLst.append(newDataX)
                 DataYLst.append(newDataY)
+                print(f' {i}/{newDataNum}th augmentation with {ratio} done')
 
         return DataXLst , DataYLst
 
     def trainingStep(self):
-        print(self.TrnX)
+        #print(self.TrnX)
 
         self.model.fit(self.TrnX,self.TrnY)
 
+        Prediction = self.model.predict(self.TrnX)
+
+        score = np.mean(abs(self.TrnY - Prediction))
+
+        print(f'l1 score is : {score}')
 
 
     def TestStep(self):
@@ -153,7 +158,7 @@ class EelPredictor(nn.Module):
             wr = csv.writer(f)
             wr.writerow(header)
             for idx,i in enumerate(TestResult):
-                wr.writerow([self.TesName[idx],i])
+                wr.writerow([self.TesName[idx],100*i])
                 #print(f'appending {i} complete')
             print('making csv file done')
 
@@ -169,11 +174,11 @@ if __name__ == '__main__':
     labelDir = baseDir + 'train.csv'
     data_folder_dir_test = baseDir + 'test/'
     save_range= 5
-    ratioLst= [(2*i+1)/10 for i in range(5)]
+    ratioLst= np.linspace(0,1,7)[1:-1]
     print(ratioLst)
 
     svrC = [0.01,0.1,1,2,4,8,16,32,64,128,256,512,1024,2048,5096,10192]
-    svrC = [1,10]
+    svrC = [1]
     svrEps = [0.001,0.01,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,2,4,8,16,32,64]
     svrEps = [0.1]
     svrKernel = ['linear','rbf']
@@ -182,7 +187,7 @@ if __name__ == '__main__':
     svrDg= [3,4,5,6]
     rangeNum = [50]
 
-    newDataNum = [10,100,200,300,400,500,1000]
+    newDataNum = [5000,6000,7000,8000,9000,10000,15000,20000,25000,30000]
 
     for C in svrC:
         for Eps in svrEps:
