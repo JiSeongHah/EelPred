@@ -524,21 +524,16 @@ import os
 #             return data_folder_name, input
 
 
+class MyEelTrnDataset(torch.utils.data.Dataset):
 
-
-class MyEelDataset(torch.utils.data.Dataset):
-
-    def __init__(self,data_folder_dir,tLabelDir,TRAIN=True):
+    def __init__(self,data_folder_dir,tLabelDir):
 
         self.data_folder_dir = data_folder_dir
 
         self.tLabelDir = tLabelDir
 
         self.data_folder_lst = os.listdir(data_folder_dir)
-
-        self.TRAIN = TRAIN
-
-
+        self.data_folder_lst = [fle for fle in self.data_folder_lst if fle.endswith('.jpg')]
 
         self.labelDict = dict()
 
@@ -556,45 +551,99 @@ class MyEelDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
 
-        data_folder_name = self.data_folder_lst[idx]
-        full_data_dir = self.data_folder_dir+data_folder_name+'/'
+        dataFileName = self.data_folder_lst[idx]
+        full_data_dir = self.data_folder_dir+dataFileName
 
-        jpgLst = os.listdir(full_data_dir)
-        jpgLst = sorted([file for file in jpgLst if file.endswith(".jpg")])
-
-        randNum = int(np.random.choice(len(jpgLst),1))
-
-
-        img = Image.open(full_data_dir+jpgLst[randNum])
+        img = Image.open(full_data_dir)
         imgArr = np.asarray(img)
 
         input = torch.tensor(imgArr).float()
         input = input.permute(2,0,1)
 
-        #print('input type is : ',input.type())
+        dataLabelName = str(dataFileName).split('_')[0]
 
-        if self.TRAIN == True:
+        label = torch.tensor([float(self.labelDict[dataLabelName]) /100  ])
 
-            label = torch.tensor([float(self.labelDict[str(data_folder_name)]) /100  ])
-            #print(label.size())
+        return dataFileName, input, label
 
-            return data_folder_name, input, label
 
-        if self.TRAIN != True:
 
-            return data_folder_name, input
-rootPath = '/home/a286winteriscoming/Downloads/EelPred/dataset/dataset/'
+class MyEelValTestDataset(torch.utils.data.Dataset):
+    def __init__(self,data_folder_dir,tLabelDir,Val=True):
+
+        self.data_folder_dir = data_folder_dir
+
+        self.tLabelDir = tLabelDir
+
+        self.data_folder_lst = os.listdir(data_folder_dir)
+
+        print(self.data_folder_lst)
+
+        self.labelDict = dict()
+
+        self.Val = Val
+
+
+        with open(self.tLabelDir, 'r') as f:
+            rdr = csv.reader(f)
+            for line in rdr:
+                try:
+                    self.labelDict[str(line[0])] = float(line[1])
+                except:
+                    self.labelDict[str(line[0])] = line[1]
+
+
+    def __len__(self):
+        return len(os.listdir(self.data_folder_dir))
+
+    def __getitem__(self, idx):
+
+        dataFileName = self.data_folder_lst[idx]
+        full_data_dir = self.data_folder_dir + dataFileName + '/'
+
+        FileLst = os.listdir(full_data_dir)
+        FileLst = [fle for fle in FileLst if fle.endswith('.jpg')]
+
+
+
+        for idx,fle in enumerate(FileLst):
+            img = Image.open(full_data_dir+fle)
+            imgArr = np.asarray(img)
+
+            input = torch.tensor(imgArr).float()
+            input = input.permute(2,0,1)
+
+            if idx == 0:
+                totalInput = input
+            else:
+                totalInput = torch.cat((totalInput,input))
+
+        if self.Val == True:
+            dataLabelName = str(dataFileName)
+            label = torch.tensor([float(self.labelDict[dataLabelName]) /100  ])
+
+            return dataFileName, totalInput, label
+
+        else:
+
+            return dataFileName, totalInput
+
+rootPath = '/home/a286winteriscoming/Downloads/EelPred/datasetVer1/dataset/'
 trainFolderPath = rootPath +'train/'
 testFolderPath = rootPath + 'test/'
 labelPath = rootPath+'train.csv'
 
 
-
-# dt = MyEelDataset(data_folder_dir=trainFolderPath,tLabelDir=labelPath,rangeNum=50,TRAIN=True)
+#
+# dt = MyEelTrnDataset(data_folder_dir=trainFolderPath,tLabelDir=labelPath)
 #
 # for idx,i in enumerate(dt):
 #     print(i[1].size(),i[2])
 
+dt = MyEelValTestDataset(data_folder_dir=testFolderPath,tLabelDir=labelPath,Val=False)
+
+for i in dt:
+    print(i[1].size())
 
 
 # #

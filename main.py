@@ -6,7 +6,7 @@ from torch.optim import AdamW, Adam,SGD
 from torch.nn import MSELoss
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
-from DataLoading import MyEelDataset
+from DataLoading import MyEelTrnDataset,MyEelValTestDataset
 from save_funcs import createDirectory,mk_name
 import numpy as np
 import matplotlib.pyplot as plt
@@ -100,13 +100,13 @@ class EelPredictor(nn.Module):
                                 # 0으로 나누는 것을 방지하기 위한 epsilon 값
                               )
 
-        MyTrnDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_trn,tLabelDir=self.labelDir,TRAIN=True)
+        MyTrnDataset = MyEelTrnDataset(data_folder_dir=self.data_folder_dir_trn,tLabelDir=self.labelDir)
         self.trainDataloader = DataLoader(MyTrnDataset,batch_size=self.bSizeTrn,shuffle=True)
 
-        MyValDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_val, tLabelDir=self.labelDir,TRAIN=True)
+        MyValDataset = MyEelValTestDataset(data_folder_dir=self.data_folder_dir_val, tLabelDir=self.labelDir,Val=True)
         self.valDataloader = DataLoader(MyValDataset, batch_size=self.bSizeVal, shuffle=False)
 
-        MyTestDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_test,tLabelDir=self.labelDir,TRAIN=False)
+        MyTestDataset = MyEelValTestDataset(data_folder_dir=self.data_folder_dir_test,tLabelDir=self.labelDir,Val=False)
         self.testLen = len(MyTestDataset)
         self.TestDataloader = DataLoader(MyTestDataset,batch_size=1,shuffle=False)
 
