@@ -1,7 +1,7 @@
 import os
 import shutil
 
-rootPath = '/home/a286winteriscoming/Downloads/EelPred/datasetVer1/dataset/'
+rootPath = '/home/a286/hjs_dir1/EelPred/datasetVer0/'
 trainFolderPath = rootPath +'train/'
 valFolderPath = rootPath + 'val/'
 testFolderPath = rootPath + 'test/'

@@ -288,7 +288,7 @@ class EelPredictor(nn.Module):
             if self.num4epoch >= self.MaxEpoch:
                 break
 
-os.environ["CUDA_VISIBLE_DEVICES"]= "0"
+os.environ["CUDA_VISIBLE_DEVICES"]= "3"
 
 
 if __name__ == '__main__':
