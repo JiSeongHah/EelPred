@@ -72,7 +72,6 @@ if __name__ == '__main__':
             whichModel=whichModel,
             bSizeVal=10, lr=3e-4, eps=1e-9)
 
-
     #MODEL_START.TestStep()
 
     for i in range(10000):

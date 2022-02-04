@@ -526,7 +526,7 @@ import os
 
 class MyEelDataset(torch.utils.data.Dataset):
 
-    def __init__(self,data_folder_dir,tLabelDir,TEST=False):
+    def __init__(self,data_folder_dir,tLabelDir,TEST=False,CROP=None):
 
         self.data_folder_dir = data_folder_dir
 
@@ -538,6 +538,7 @@ class MyEelDataset(torch.utils.data.Dataset):
         self.labelDict = dict()
 
         self.TEST = TEST
+        self.CROP = CROP
 
         with open(self.tLabelDir, 'r') as f:
             rdr = csv.reader(f)
@@ -558,6 +559,15 @@ class MyEelDataset(torch.utils.data.Dataset):
 
         img = Image.open(full_data_dir)
         imgArr = np.asarray(img)
+
+        if self.CROP != None:
+            h1 = self.CROP[0]
+            h2 = self.CROP[1]
+            w1 = self.CROP[2]
+            w2 = self.CROP[3]
+
+            imgArr = imgArr[h1:h2,w1:w2,:]
+
 
         input = torch.tensor(imgArr).float()
         input = input.permute(2,0,1)
@@ -581,10 +591,12 @@ testFolderPath = rootPath + 'test/'
 labelPath = rootPath+'train.csv'
 
 #
-# #
+# # #
 # dt = MyEelDataset(data_folder_dir=valFolderPath,tLabelDir=labelPath,TEST=False)
 #
 # for idx,i in enumerate(dt):
+#     if idx > 3:
+#         break
 #     print(i[2])
 
 

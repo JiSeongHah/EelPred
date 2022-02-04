@@ -44,7 +44,7 @@ if __name__ == '__main__':
     CROP = False
     gpuUse = True
     whichModel= 'resnet50'
-    lossFuc = 'Huber'
+    lossFuc = 'L2'
 
 
     savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss=lossFuc)
