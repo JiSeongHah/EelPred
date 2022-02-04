@@ -524,9 +524,9 @@ import os
 #             return data_folder_name, input
 
 
-class MyEelTrnDataset(torch.utils.data.Dataset):
+class MyEelDataset(torch.utils.data.Dataset):
 
-    def __init__(self,data_folder_dir,tLabelDir):
+    def __init__(self,data_folder_dir,tLabelDir,TEST=False):
 
         self.data_folder_dir = data_folder_dir
 
@@ -536,6 +536,8 @@ class MyEelTrnDataset(torch.utils.data.Dataset):
         self.data_folder_lst = [fle for fle in self.data_folder_lst if fle.endswith('.jpg')]
 
         self.labelDict = dict()
+
+        self.TEST = TEST
 
         with open(self.tLabelDir, 'r') as f:
             rdr = csv.reader(f)
@@ -547,7 +549,7 @@ class MyEelTrnDataset(torch.utils.data.Dataset):
 
 
     def __len__(self):
-        return len(os.listdir(self.data_folder_dir))
+        return len(self.data_folder_lst)
 
     def __getitem__(self, idx):
 
@@ -562,91 +564,29 @@ class MyEelTrnDataset(torch.utils.data.Dataset):
 
         dataLabelName = str(dataFileName).split('_')[0]
 
-        label = torch.tensor([float(self.labelDict[dataLabelName]) /100  ])
+        if self.TEST == False:
 
-        return dataFileName, input, label
+            label = torch.tensor([float(self.labelDict[dataLabelName]) /100 ])
 
+            return dataLabelName, input, label
+        if self.TEST == True:
 
+            return dataLabelName, input
 
-class MyEelValTestDataset(torch.utils.data.Dataset):
-    def __init__(self,data_folder_dir,tLabelDir,Val=True):
-
-        self.data_folder_dir = data_folder_dir
-
-        self.tLabelDir = tLabelDir
-
-        self.data_folder_lst = os.listdir(data_folder_dir)
-
-        print(self.data_folder_lst)
-
-        self.labelDict = dict()
-
-        self.Val = Val
-
-
-        with open(self.tLabelDir, 'r') as f:
-            rdr = csv.reader(f)
-            for line in rdr:
-                try:
-                    self.labelDict[str(line[0])] = float(line[1])
-                except:
-                    self.labelDict[str(line[0])] = line[1]
-
-
-    def __len__(self):
-        return len(os.listdir(self.data_folder_dir))
-
-    def __getitem__(self, idx):
-
-        dataFileName = self.data_folder_lst[idx]
-        full_data_dir = self.data_folder_dir + dataFileName + '/'
-
-        FileLst = os.listdir(full_data_dir)
-        FileLst = [fle for fle in FileLst if fle.endswith('.jpg')]
-
-
-
-        for idx,fle in enumerate(FileLst):
-            img = Image.open(full_data_dir+fle)
-            imgArr = np.asarray(img)
-
-            input = torch.tensor(imgArr).float()
-            input = input.permute(2,0,1)
-
-            if idx == 0:
-                totalInput = input
-            else:
-                totalInput = torch.cat((totalInput,input))
-
-        if self.Val == True:
-            dataLabelName = str(dataFileName)
-            label = torch.tensor([float(self.labelDict[dataLabelName]) /100  ])
-
-            return dataFileName, totalInput, label
-
-        else:
-
-            return dataFileName, totalInput
 
 rootPath = '/home/a286winteriscoming/Downloads/EelPred/datasetVer1/dataset/'
 trainFolderPath = rootPath +'train/'
+valFolderPath = rootPath + 'val/'
 testFolderPath = rootPath + 'test/'
 labelPath = rootPath+'train.csv'
 
-
 #
-# dt = MyEelTrnDataset(data_folder_dir=trainFolderPath,tLabelDir=labelPath)
+# #
+# dt = MyEelDataset(data_folder_dir=valFolderPath,tLabelDir=labelPath,TEST=False)
 #
 # for idx,i in enumerate(dt):
-#     print(i[1].size(),i[2])
-
-dt = MyEelValTestDataset(data_folder_dir=testFolderPath,tLabelDir=labelPath,Val=False)
-
-for i in dt:
-    print(i[1].size())
+#     print(i[2])
 
 
-# #
-# #
-#
-#
+
+

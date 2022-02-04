@@ -6,7 +6,7 @@ from torch.optim import AdamW, Adam,SGD
 from torch.nn import MSELoss
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
-from DataLoading import MyEelTrnDataset,MyEelValTestDataset
+from DataLoading import MyEelDataset
 from save_funcs import createDirectory,mk_name
 import numpy as np
 import matplotlib.pyplot as plt
@@ -100,13 +100,13 @@ class EelPredictor(nn.Module):
                                 # 0으로 나누는 것을 방지하기 위한 epsilon 값
                               )
 
-        MyTrnDataset = MyEelTrnDataset(data_folder_dir=self.data_folder_dir_trn,tLabelDir=self.labelDir)
+        MyTrnDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_trn,tLabelDir=self.labelDir,TEST=False)
         self.trainDataloader = DataLoader(MyTrnDataset,batch_size=self.bSizeTrn,shuffle=True)
 
-        MyValDataset = MyEelValTestDataset(data_folder_dir=self.data_folder_dir_val, tLabelDir=self.labelDir,Val=True)
+        MyValDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_val, tLabelDir=self.labelDir,TEST=False)
         self.valDataloader = DataLoader(MyValDataset, batch_size=self.bSizeVal, shuffle=False)
 
-        MyTestDataset = MyEelValTestDataset(data_folder_dir=self.data_folder_dir_test,tLabelDir=self.labelDir,Val=False)
+        MyTestDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_test,tLabelDir=self.labelDir,TEST=True)
         self.testLen = len(MyTestDataset)
         self.TestDataloader = DataLoader(MyTestDataset,batch_size=1,shuffle=False)
 
@@ -122,12 +122,10 @@ class EelPredictor(nn.Module):
 
     def calLoss(self,logit,label):
 
-
         #loss = MSELoss()
         loss = L1Loss()
 
         return loss(logit,label)
-
 
     def trainingStep(self,trainingNum):
 
@@ -166,7 +164,7 @@ class EelPredictor(nn.Module):
 
                 if (countNum + 1 ) % self.bSizeVal == 0:
                     ################# mean of each append to lst for plot###########
-                    self.loss_lst_trn.append(np.mean(self.loss_lst_trn_tmp))
+                    self.loss_lst_trn.append(self.iter_to_accumul*np.mean(self.loss_lst_trn_tmp))
                     ################# mean of each append to lst for plot###########
                     ###########flush#############
                     self.loss_lst_trn_tmp = []
@@ -212,7 +210,7 @@ class EelPredictor(nn.Module):
                 else:
                     countNum += 1
 
-            self.loss_lst_val.append(np.mean(self.loss_lst_val_tmp))
+            self.loss_lst_val.append(self.iter_to_accumul*np.mean(self.loss_lst_val_tmp))
 
             ################# mean of each append to lst for plot###########
             ###########flush#############
@@ -223,38 +221,36 @@ class EelPredictor(nn.Module):
 
     def TestStep(self):
 
-
         self.EelModel.eval()
         countNum = 0
         self.optimizer.zero_grad()
 
-        ResultLst = []
+        ResultDict = dict()
 
         with torch.set_grad_enabled(False):
             for ImageName,TestBInput in self.TestDataloader:
-
 
                 TestBInput = (TestBInput.float()).to(self.device)
 
                 TestBLogit = self.forward(TestBInput)
                 TestBLogit = TestBLogit.cpu()
 
-                ResultLst.append([str(ImageName[0]),100*TestBLogit.item()])
-                print(f'{countNum} / {self.testLen} Pred done  data : {[str(ImageName[0]),TestBLogit]}')
+                if ImageName not in ResultDict:
+                    ResultDict[str(ImageName)] = [100*TestBLogit.item()]
+                if ImageName in ResultDict:
+                    ResultDict[str(ImageName)].append(100*TestBLogit.item())
+                print(f'{countNum} / {self.testLen} Pred done  data : {[str(ImageName),100*TestBLogit]}')
                 countNum +=1
 
-        ResultLst = sorted(ResultLst, key= lambda x: x[0])
-
-        print(ResultLst)
         print('Start saving Result.....')
 
         header = ['ImageDir','AvgWeight']
         with open(self.modelPlotSaveDir+'sample_submission.csv','w') as f:
             wr = csv.writer(f)
             wr.writerow(header)
-            for i in ResultLst:
-                wr.writerow(i)
-                print(f'appending {i} complete')
+            for ImageKey in ResultDict.keys():
+                wr.writerow([str(ImageKey),np.mean(ResultDict[ImageKey])])
+                print(f'appending {ImageKey} with {ResultDict[ImageKey]} complete')
 
 
         torch.set_grad_enabled(True)
@@ -299,7 +295,7 @@ if __name__ == '__main__':
 
 
 
-    baseDir = '/home/a286winteriscoming/Downloads/EelPred/dataset/dataset/'
+    baseDir = '/home/a286winteriscoming/Downloads/EelPred/datasetVer1/dataset/'
     #baseDir = '/home/a286/hjs_dir1/Dacon1/'
 
     data_folder_dir_trn = baseDir + 'train/'
@@ -344,42 +340,42 @@ if __name__ == '__main__':
             bSizeVal=10, lr=3e-4, eps=1e-9)
 
 
-    MODEL_START.TestStep()
+    #MODEL_START.TestStep()
 
-    # for i in range(10000):
-    #     MODEL_START.START_TRN_VAL()
+    for i in range(10000):
+        MODEL_START.START_TRN_VAL()
+
+        if i%save_range ==0:
+            if i > 15000:
+                break
+
+            try:
+                torch.save(MODEL_START, modelPlotSaveDir + str(i) + '.pth')
+                print('saving model complete')
+                print('saving model complete')
+                print('saving model complete')
+                print('saving model complete')
+                print('saving model complete')
+                time.sleep(5)
+            except:
+                print('saving model failed')
+                print('saving model failed')
+                print('saving model failed')
+                print('saving model failed')
+                print('saving model failed')
+                time.sleep(5)
+
+
+
+
+
+
+
     #
-    #     if i%save_range ==0:
-    #         if i > 15000:
-    #             break
-    #
-    #         try:
-    #             torch.save(MODEL_START, modelPlotSaveDir + str(i) + '.pth')
-    #             print('saving model complete')
-    #             print('saving model complete')
-    #             print('saving model complete')
-    #             print('saving model complete')
-    #             print('saving model complete')
-    #             time.sleep(5)
-    #         except:
-    #             print('saving model failed')
-    #             print('saving model failed')
-    #             print('saving model failed')
-    #             print('saving model failed')
-    #             print('saving model failed')
-    #             time.sleep(5)
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    # #
-    #
-    #
-    #
-    #
+
+
+
+
 
 
 

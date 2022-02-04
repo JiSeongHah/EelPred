@@ -330,21 +330,6 @@ class EelPredCNNModel(nn.Module):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class BasicBlock4one(nn.Module):
     # mul은 추후 ResNet18, 34, 50, 101, 152등 구조 생성에 사용됨
     mul = 1
