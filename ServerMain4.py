@@ -128,8 +128,8 @@ class EelPredictor(nn.Module):
 
     def calLoss(self,logit,label):
 
-        #loss = MSELoss()
-        loss = L1Loss()
+        loss = MSELoss()
+        #loss = L1Loss()
 
         return loss(logit,label)
 
@@ -168,14 +168,6 @@ class EelPredictor(nn.Module):
                     self.optimizer.step()
                     self.optimizer.zero_grad()
 
-                if (countNum + 1 ) % self.bSizeVal == 0:
-                    ################# mean of each append to lst for plot###########
-                    self.loss_lst_trn.append(self.iter_to_accumul*np.mean(self.loss_lst_trn_tmp))
-                    ################# mean of each append to lst for plot###########
-                    ###########flush#############
-                    self.loss_lst_trn_tmp = []
-
-
                 if countNum == self.MaxStep:
                     break
                 else:
@@ -188,6 +180,11 @@ class EelPredictor(nn.Module):
                 print(f'num4epoch is : {self.num4epoch} and self.max_epoch : {self.MaxEpoch}')
 
 
+        ################# mean of each append to lst for plot###########
+        self.loss_lst_trn.append(self.iter_to_accumul * np.mean(self.loss_lst_trn_tmp))
+        ################# mean of each append to lst for plot###########
+        ###########flush#############
+        self.loss_lst_trn_tmp = []
 
         torch.set_grad_enabled(False)
         self.EelModel.eval()
@@ -263,43 +260,39 @@ class EelPredictor(nn.Module):
         self.EelModel.train()
 
 
-    def START_TRN_VAL(self):
-
-        for i in range(10000):
-            print('training step start....')
-            self.trainingStep(trainingNum=i)
-            print('training step complete!')
-
-            print('Validation start.....')
-            self.valdatingStep(validatingNum=i)
-            print('Validation complete!')
-
-            fig = plt.figure()
-            ax1 = fig.add_subplot(1, 4, 1)
-            ax1.plot(range(len(self.loss_lst_trn)), self.loss_lst_trn)
-            ax1.set_title('train loss')
-
-            ax3 = fig.add_subplot(1, 4, 3)
-            ax3.plot(range(len(self.loss_lst_val)), self.loss_lst_val)
-            ax3.set_title('val loss')
+    def START_TRN_VAL(self,epoch):
 
 
-            plt.savefig(self.modelPlotSaveDir +  'Result.png', dpi=300)
-            print('saving plot complete!')
-            plt.close()
+        print('training step start....')
+        self.trainingStep(trainingNum=epoch)
+        print('training step complete!')
 
-            print(f'num4epoch is : {self.num4epoch} and self.max_epoch : {self.MaxEpoch}')
+        print('Validation start.....')
+        self.valdatingStep(validatingNum=epoch)
+        print('Validation complete!')
 
-            self.num4epoch += 1
-            if self.num4epoch >= self.MaxEpoch:
-                break
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1, 4, 1)
+        ax1.plot(range(len(self.loss_lst_trn)), self.loss_lst_trn)
+        ax1.set_title('train loss')
+
+        ax3 = fig.add_subplot(1, 4, 3)
+        ax3.plot(range(len(self.loss_lst_val)), self.loss_lst_val)
+        ax3.set_title('val loss')
+
+
+        plt.savefig(self.modelPlotSaveDir +  'Result.png', dpi=300)
+        print('saving plot complete!')
+        plt.close()
+
+        print(f'num4epoch is : {epoch} and self.max_epoch : {self.MaxEpoch}')
+
+
 
 os.environ["CUDA_VISIBLE_DEVICES"]= "3"
 
 
 if __name__ == '__main__':
-
-
 
     baseDir = '/home/a286/hjs_dir1/EelPred/datasetVer0/'
     #baseDir = '/home/a286/hjs_dir1/Dacon1/'
@@ -309,23 +302,23 @@ if __name__ == '__main__':
     labelDir = baseDir + 'train.csv'
     data_folder_dir_test = baseDir + 'test/'
 
-    backboneOutFeature = 256
-    LinNum = 256
+    backboneOutFeature = 100
+    LinNum = 25
 
-    MaxEpoch= 10
+    MaxEpoch= 10000
     iter_to_accumul = 10
     MaxStep = 25
     MaxStepVal = 10000
-    bSizeTrn =  2
+    bSizeTrn =  6
     save_range= 10
     modelLoadNum = 200
     CROP = False
     gpuUse = True
-    whichModel= 'resnet152'
+    whichModel= 'resnet50'
 
 
-    savingDir = mk_name(model='resnet50',bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
-    modelPlotSaveDir = baseDir +savingDir + '/'
+    savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss='L2loss')
+    modelPlotSaveDir = baseDir +'Results/'+savingDir + '/'
     createDirectory(modelPlotSaveDir)
 
 
@@ -357,7 +350,7 @@ if __name__ == '__main__':
         MODEL_START.START_TRN_VAL()
 
         if i%save_range ==0:
-            if i > 15000:
+            if i > MaxEpoch:
                 break
 
             try:

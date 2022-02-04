@@ -21,7 +21,7 @@ class EelPredictor(nn.Module):
                  data_folder_dir_trn,
                  data_folder_dir_val,
                  MaxEpoch,
-                 innerNum,
+
                  gpuUse,
                  labelDir,
                  data_folder_dir_test,
@@ -29,6 +29,9 @@ class EelPredictor(nn.Module):
                  iter_to_accumul,
                  MaxStep,
                  MaxStepVal,
+                 whichModel,
+                 backboneOutFeature,
+                 LinNum,
                  bSizeTrn= 8,
                  bSizeVal=1,
                  lr=3e-4,
@@ -45,9 +48,12 @@ class EelPredictor(nn.Module):
         self.MaxStep = MaxStep
         self.MaxStepVal = MaxStepVal
 
-        self.innerNum = innerNum
+
         self.labelDir = labelDir
         self.gpuUse = gpuUse
+        self.whichModel = whichModel
+        self.backboneOutFeature = backboneOutFeature
+        self.LinNum = LinNum
 
         self.lr = lr
         self.eps = eps
@@ -59,9 +65,9 @@ class EelPredictor(nn.Module):
         ###################MODEL SETTING###########################
         print('failed loading model, loaded fresh model')
         self.EelModel = EelPredCNNModel(
-            modelKind='resnet50',
-            backboneOutFeature=50,
-            LinNum=25
+            modelKind=self.whichModel,
+            backboneOutFeature=self.backboneOutFeature,
+            LinNum=self.LinNum
         )
 
         #self.EelModel = nn.Linear(2,10)
@@ -162,12 +168,7 @@ class EelPredictor(nn.Module):
                     self.optimizer.step()
                     self.optimizer.zero_grad()
 
-                if (countNum + 1 ) % self.bSizeVal == 0:
-                    ################# mean of each append to lst for plot###########
-                    self.loss_lst_trn.append(self.iter_to_accumul*np.mean(self.loss_lst_trn_tmp))
-                    ################# mean of each append to lst for plot###########
-                    ###########flush#############
-                    self.loss_lst_trn_tmp = []
+
 
 
                 if countNum == self.MaxStep:
@@ -181,7 +182,11 @@ class EelPredictor(nn.Module):
                 print(f'globaly {globalTimeElaps} elapsed and locally {localTimeElaps} elapsed for {countNum} / {self.MaxStep}')
                 print(f'num4epoch is : {self.num4epoch} and self.max_epoch : {self.MaxEpoch}')
 
-
+        ################# mean of each append to lst for plot###########
+        self.loss_lst_trn.append(self.iter_to_accumul * np.mean(self.loss_lst_trn_tmp))
+        ################# mean of each append to lst for plot###########
+        ###########flush#############
+        self.loss_lst_trn_tmp = []
 
         torch.set_grad_enabled(False)
         self.EelModel.eval()
@@ -257,36 +262,33 @@ class EelPredictor(nn.Module):
         self.EelModel.train()
 
 
-    def START_TRN_VAL(self):
+    def START_TRN_VAL(self,epoch):
 
-        for i in range(10000):
-            print('training step start....')
-            self.trainingStep(trainingNum=i)
-            print('training step complete!')
+        print('training step start....')
+        self.trainingStep(trainingNum=epoch)
+        print('training step complete!')
 
-            print('Validation start.....')
-            self.valdatingStep(validatingNum=i)
-            print('Validation complete!')
+        print('Validation start.....')
+        self.valdatingStep(validatingNum=epoch)
+        print('Validation complete!')
 
-            fig = plt.figure()
-            ax1 = fig.add_subplot(1, 4, 1)
-            ax1.plot(range(len(self.loss_lst_trn)), self.loss_lst_trn)
-            ax1.set_title('train loss')
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1, 4, 1)
+        ax1.plot(range(len(self.loss_lst_trn)), self.loss_lst_trn)
+        ax1.set_title('train loss')
 
-            ax3 = fig.add_subplot(1, 4, 3)
-            ax3.plot(range(len(self.loss_lst_val)), self.loss_lst_val)
-            ax3.set_title('val loss')
+        ax3 = fig.add_subplot(1, 4, 3)
+        ax3.plot(range(len(self.loss_lst_val)), self.loss_lst_val)
+        ax3.set_title('val loss')
 
 
-            plt.savefig(self.modelPlotSaveDir +  'Result.png', dpi=300)
-            print('saving plot complete!')
-            plt.close()
+        plt.savefig(self.modelPlotSaveDir +  'Result.png', dpi=300)
+        print('saving plot complete!')
+        plt.close()
 
-            print(f'num4epoch is : {self.num4epoch} and self.max_epoch : {self.MaxEpoch}')
+        print(f'num4epoch is : {epoch} and self.max_epoch : {self.MaxEpoch}')
 
-            self.num4epoch += 1
-            if self.num4epoch >= self.MaxEpoch:
-                break
+
 
 os.environ["CUDA_VISIBLE_DEVICES"]= "0"
 
@@ -303,19 +305,23 @@ if __name__ == '__main__':
     labelDir = baseDir + 'train.csv'
     data_folder_dir_test = baseDir + 'test/'
 
-    innerNum = 2
-    MaxEpoch= 10
+    backboneOutFeature = 50
+    LinNum = 25
+
+
+    MaxEpoch= 10000
     iter_to_accumul = 10
     MaxStep = 25
     MaxStepVal = 10000
-    bSizeTrn =  2
+    bSizeTrn = 2
     save_range= 10
     modelLoadNum = 200
     CROP = False
     gpuUse = True
+    whichModel= 'resnet50'
 
 
-    savingDir = mk_name(model='resnet50',innerNum=innerNum,bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
+    savingDir = mk_name(model='resnet50',bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
     modelPlotSaveDir = baseDir +savingDir + '/'
     createDirectory(modelPlotSaveDir)
 
@@ -328,7 +334,8 @@ if __name__ == '__main__':
             data_folder_dir_trn=data_folder_dir_trn,
             data_folder_dir_val=data_folder_dir_val,
             MaxEpoch=MaxEpoch,
-            innerNum=innerNum,
+            backboneOutFeature=backboneOutFeature,
+            LinNum=LinNum,
             labelDir=labelDir,
             modelPlotSaveDir=modelPlotSaveDir,
             iter_to_accumul=iter_to_accumul,
@@ -337,6 +344,7 @@ if __name__ == '__main__':
             bSizeTrn=bSizeTrn,
             gpuUse=gpuUse,
             data_folder_dir_test=data_folder_dir_test,
+            whichModel=whichModel,
             bSizeVal=10, lr=3e-4, eps=1e-9)
 
 
@@ -346,7 +354,7 @@ if __name__ == '__main__':
         MODEL_START.START_TRN_VAL()
 
         if i%save_range ==0:
-            if i > 15000:
+            if i > MaxEpoch:
                 break
 
             try:
