@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from MY_MODELS import simpleDNN
 from torch.optim import AdamW, Adam,SGD
-from torch.nn import MSELoss
+from torch.nn import MSELoss,L1Loss,HuberLoss
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from DataLoading import MyEelDataset
@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import csv
-from torch.nn import L1Loss
+
 from sklearn.metrics import f1_score
 from MY_MODELS import EelPredCNNModel
 
@@ -21,7 +21,7 @@ class EelPredictor(nn.Module):
                  data_folder_dir_trn,
                  data_folder_dir_val,
                  MaxEpoch,
-
+                 lossFuc,
                  gpuUse,
                  labelDir,
                  data_folder_dir_test,
@@ -54,6 +54,7 @@ class EelPredictor(nn.Module):
         self.whichModel = whichModel
         self.backboneOutFeature = backboneOutFeature
         self.LinNum = LinNum
+        self.lossFuc = lossFuc
 
         self.lr = lr
         self.eps = eps
@@ -128,8 +129,16 @@ class EelPredictor(nn.Module):
 
     def calLoss(self,logit,label):
 
-        #loss = MSELoss()
-        loss = L1Loss()
+        if self.lossFuc == 'L1':
+            loss = L1Loss()
+        elif self.lossFuc == 'L2':
+            loss = MSELoss()
+        elif self.lossFuc == 'Huber':
+            loss = HuberLoss()
+        else:
+            loss = MSELoss()
+
+
 
         return loss(logit,label)
 

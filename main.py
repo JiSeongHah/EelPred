@@ -17,7 +17,6 @@ from sklearn.metrics import f1_score
 from MY_MODELS import EelPredCNNModel
 from EELPREDICTOR import EelPredictor
 
-
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -32,7 +31,6 @@ if __name__ == '__main__':
     backboneOutFeature = 50
     LinNum = 25
 
-
     MaxEpoch= 10000
     iter_to_accumul = 10
     MaxStep = 25
@@ -43,9 +41,10 @@ if __name__ == '__main__':
     CROP = False
     gpuUse = True
     whichModel= 'resnet50'
+    lossFuc = 'Huber'
 
 
-    savingDir = mk_name(model='resnet50',bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
+    savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss=lossFuc)
     modelPlotSaveDir = baseDir +savingDir + '/'
     createDirectory(modelPlotSaveDir)
 
@@ -60,6 +59,7 @@ if __name__ == '__main__':
             MaxEpoch=MaxEpoch,
             backboneOutFeature=backboneOutFeature,
             LinNum=LinNum,
+            lossFuc=lossFuc,
             labelDir=labelDir,
             modelPlotSaveDir=modelPlotSaveDir,
             iter_to_accumul=iter_to_accumul,

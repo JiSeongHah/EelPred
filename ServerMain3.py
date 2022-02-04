@@ -44,9 +44,10 @@ if __name__ == '__main__':
     CROP = False
     gpuUse = True
     whichModel= 'resnet50'
+    lossFuc = 'Huber'
 
 
-    savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
+    savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss=lossFuc)
     modelPlotSaveDir = baseDir +'Results/'+savingDir + '/'
     createDirectory(modelPlotSaveDir)
 
@@ -61,6 +62,7 @@ if __name__ == '__main__':
             MaxEpoch=MaxEpoch,
             backboneOutFeature=backboneOutFeature,
             LinNum=LinNum,
+            lossFuc=lossFuc,
             labelDir=labelDir,
             modelPlotSaveDir=modelPlotSaveDir,
             iter_to_accumul=iter_to_accumul,
