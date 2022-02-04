@@ -78,7 +78,7 @@ if __name__ == '__main__':
     #MODEL_START.TestStep()
 
     for i in range(10000):
-        MODEL_START.START_TRN_VAL()
+        MODEL_START.START_TRN_VAL(epoch=i)
 
         if i%save_range ==0:
             if i > MaxEpoch:
