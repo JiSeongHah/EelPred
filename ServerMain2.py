@@ -21,7 +21,7 @@ class EelPredictor(nn.Module):
                  data_folder_dir_trn,
                  data_folder_dir_val,
                  MaxEpoch,
-                 innerNum,
+
                  gpuUse,
                  labelDir,
                  data_folder_dir_test,
@@ -29,6 +29,9 @@ class EelPredictor(nn.Module):
                  iter_to_accumul,
                  MaxStep,
                  MaxStepVal,
+                 whichModel,
+                 backboneOutFeature,
+                 LinNum,
                  bSizeTrn= 8,
                  bSizeVal=1,
                  lr=3e-4,
@@ -45,9 +48,12 @@ class EelPredictor(nn.Module):
         self.MaxStep = MaxStep
         self.MaxStepVal = MaxStepVal
 
-        self.innerNum = innerNum
+
         self.labelDir = labelDir
         self.gpuUse = gpuUse
+        self.whichModel = whichModel
+        self.backboneOutFeature = backboneOutFeature
+        self.LinNum = LinNum
 
         self.lr = lr
         self.eps = eps
@@ -59,9 +65,9 @@ class EelPredictor(nn.Module):
         ###################MODEL SETTING###########################
         print('failed loading model, loaded fresh model')
         self.EelModel = EelPredCNNModel(
-            modelKind='resnet50',
-            backboneOutFeature=50,
-            LinNum=25
+            modelKind=self.whichModel,
+            backboneOutFeature=self.backboneOutFeature,
+            LinNum=self.LinNum
         )
 
         #self.EelModel = nn.Linear(2,10)
@@ -293,9 +299,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]= "1"
 
 if __name__ == '__main__':
 
-
-
-    baseDir = '/home/a286winteriscoming/Downloads/EelPred/datasetVer1/dataset/'
+    baseDir = '/home/a286/hjs_dir1/EelPred/datasetVer0/'
     #baseDir = '/home/a286/hjs_dir1/Dacon1/'
 
     data_folder_dir_trn = baseDir + 'train/'
@@ -303,7 +307,10 @@ if __name__ == '__main__':
     labelDir = baseDir + 'train.csv'
     data_folder_dir_test = baseDir + 'test/'
 
-    innerNum = 2
+    backboneOutFeature = 256
+    LinNum = 256
+
+
     MaxEpoch= 10
     iter_to_accumul = 10
     MaxStep = 25
@@ -313,9 +320,10 @@ if __name__ == '__main__':
     modelLoadNum = 200
     CROP = False
     gpuUse = True
+    whichModel= 'resnet101'
 
 
-    savingDir = mk_name(model='resnet50',innerNum=innerNum,bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
+    savingDir = mk_name(model='resnet50',bS=bSizeTrn,iter=iter_to_accumul,loss='L1loss')
     modelPlotSaveDir = baseDir +savingDir + '/'
     createDirectory(modelPlotSaveDir)
 
@@ -328,7 +336,8 @@ if __name__ == '__main__':
             data_folder_dir_trn=data_folder_dir_trn,
             data_folder_dir_val=data_folder_dir_val,
             MaxEpoch=MaxEpoch,
-            innerNum=innerNum,
+            backboneOutFeature=backboneOutFeature,
+            LinNum=LinNum,
             labelDir=labelDir,
             modelPlotSaveDir=modelPlotSaveDir,
             iter_to_accumul=iter_to_accumul,
@@ -337,6 +346,7 @@ if __name__ == '__main__':
             bSizeTrn=bSizeTrn,
             gpuUse=gpuUse,
             data_folder_dir_test=data_folder_dir_test,
+            whichModel=whichModel,
             bSizeVal=10, lr=3e-4, eps=1e-9)
 
 
