@@ -15,11 +15,11 @@ import csv
 from torch.nn import L1Loss
 from sklearn.metrics import f1_score
 from MY_MODELS import EelPredCNNModel
-
-os.environ["CUDA_VISIBLE_DEVICES"]= "3"
+from EELPREDICTOR import EelPredictor
 
 
 if __name__ == '__main__':
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
     baseDir = '/home/a286/hjs_dir1/EelPred/datasetVer0/'
     #baseDir = '/home/a286/hjs_dir1/Dacon1/'
