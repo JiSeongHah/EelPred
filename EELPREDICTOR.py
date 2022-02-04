@@ -46,6 +46,7 @@ class EelPredictor(nn.Module):
 
         self.iter_to_accumul = iter_to_accumul
         self.MaxStep = MaxStep
+
         self.MaxStepVal = MaxStepVal
 
 
@@ -111,6 +112,9 @@ class EelPredictor(nn.Module):
         self.trainDataloader = DataLoader(MyTrnDataset,batch_size=self.bSizeTrn,shuffle=True)
 
         MyValDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_val, tLabelDir=self.labelDir,TEST=False)
+        self.valLen = int(len(MyValDataset)/self.bSizeVal)
+        if self.valLen < self.MaxStepVal:
+            self.MaxStepVal = self.valLen
         self.valDataloader = DataLoader(MyValDataset, batch_size=self.bSizeVal, shuffle=False)
 
         MyTestDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_test,tLabelDir=self.labelDir,TEST=True)
@@ -185,13 +189,12 @@ class EelPredictor(nn.Module):
                 localTimeElaps = round(time.time() - localTime,2)
                 globalTimeElaps = round(time.time() - globalTime,2)
 
-                print(f'globaly {globalTimeElaps} elapsed and locally {localTimeElaps} elapsed for {countNum} / {self.MaxStep}')
-                print(f'num4epoch is : {self.num4epoch} and self.max_epoch : {self.MaxEpoch}')
+                print(f'globaly {globalTimeElaps} elapsed and locally {localTimeElaps} elapsed for {countNum} / {self.MaxStep}'
+                      f' of epoch : {trainingNum}/{self.MaxEpoch}'
+                      f' with loss : {10000*float(ResultLoss.item())}')
 
-        ################# mean of each append to lst for plot###########
         self.loss_lst_trn.append(self.iter_to_accumul * np.mean(self.loss_lst_trn_tmp))
-        ################# mean of each append to lst for plot###########
-        ###########flush#############
+        print(f'training complete with mean loss : {self.iter_to_accumul * np.mean(self.loss_lst_trn_tmp)}')
         self.loss_lst_trn_tmp = []
 
         torch.set_grad_enabled(False)
@@ -216,15 +219,15 @@ class EelPredictor(nn.Module):
                 ResultLoss = ResultLoss / self.iter_to_accumul
                 self.loss_lst_val_tmp.append(10000*float(ResultLoss.item()))
 
+                print(f'{countNum}/ {self.MaxStepVal} th val of epoch : {validatingNum} complete with loss : {10000 * float(ResultLoss.item())}')
+
                 if countNum == self.MaxStepVal:
                     break
                 else:
                     countNum += 1
 
             self.loss_lst_val.append(self.iter_to_accumul*np.mean(self.loss_lst_val_tmp))
-
-            ################# mean of each append to lst for plot###########
-            ###########flush#############
+            print(f'validation complete with mean loss : {self.iter_to_accumul*np.mean(self.loss_lst_val_tmp)}')
             self.loss_lst_val_tmp = []
 
         torch.set_grad_enabled(True)

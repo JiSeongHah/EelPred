@@ -316,7 +316,7 @@ class EelPredCNNModel(nn.Module):
         out = self.backbone(x)
         out = F.relu(self.lin1(out))
         out = self.lin2(out)
-        print(out.size())
+
 
 
         return out

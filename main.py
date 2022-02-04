@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
 
     savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss=lossFuc)
-    modelPlotSaveDir = baseDir +savingDir + '/'
+    modelPlotSaveDir = baseDir +'Results/'+savingDir + '/'
     createDirectory(modelPlotSaveDir)
 
 
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     #MODEL_START.TestStep()
 
     for i in range(10000):
-        MODEL_START.START_TRN_VAL()
+        MODEL_START.START_TRN_VAL(epoch=i)
 
         if i%save_range ==0:
             if i > MaxEpoch:
