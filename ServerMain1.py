@@ -35,7 +35,7 @@ if __name__ == '__main__':
     iter_to_accumul = 10
     MaxStep = 25
     MaxStepVal = 10000
-    bSizeTrn = 8
+    bSizeTrn = 6
     save_range= 10
     modelLoadNum = 800
     CROP = [0,1000,300,1500]

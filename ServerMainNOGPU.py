@@ -17,10 +17,12 @@ from sklearn.metrics import f1_score
 from MY_MODELS import EelPredCNNModel
 from EELPREDICTOR import EelPredictor
 
-if __name__ == '__main__':
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-    baseDir = '/home/a286winteriscoming/Downloads/EelPred/datasetVer1/dataset/'
+
+if __name__ == '__main__':
+
+
+    baseDir = '/home/a286/hjs_dir1/EelPred/datasetVer0/'
     #baseDir = '/home/a286/hjs_dir1/Dacon1/'
 
     data_folder_dir_trn = baseDir + 'train/'
@@ -29,20 +31,19 @@ if __name__ == '__main__':
     data_folder_dir_test = baseDir + 'test/'
 
     backboneOutFeature = 100
-    LinNum = 25
+    LinNum = 20
 
     MaxEpoch= 10000
     iter_to_accumul = 10
     MaxStep = 25
     MaxStepVal = 10000
-    bSizeTrn = 8
+    bSizeTrn = 32
     save_range= 10
-    modelLoadNum = 500
+    modelLoadNum = 900
     CROP = [0,1000,300,1500]
-    gpuUse = True
-    whichModel= 'resnet34'
+    gpuUse = False
+    whichModel= 'resnet101'
     lossFuc = 'Huber'
-
 
 
     savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss=lossFuc)
@@ -74,7 +75,7 @@ if __name__ == '__main__':
             bSizeVal=10, lr=3e-4, eps=1e-9)
 
 
-    #MODEL_START.TestStep()
+    # MODEL_START.TestStep()
 
     for i in range(10000):
         MODEL_START.START_TRN_VAL(epoch=i)
@@ -86,8 +87,16 @@ if __name__ == '__main__':
             try:
                 torch.save(MODEL_START, modelPlotSaveDir + str(i) + '.pth')
                 print('saving model complete')
+                print('saving model complete')
+                print('saving model complete')
+                print('saving model complete')
+                print('saving model complete')
                 time.sleep(5)
             except:
+                print('saving model failed')
+                print('saving model failed')
+                print('saving model failed')
+                print('saving model failed')
                 print('saving model failed')
                 time.sleep(5)
 
@@ -97,7 +106,7 @@ if __name__ == '__main__':
 
 
 
-    #
+
 
 
 
