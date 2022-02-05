@@ -28,20 +28,21 @@ if __name__ == '__main__':
     labelDir = baseDir + 'train.csv'
     data_folder_dir_test = baseDir + 'test/'
 
-    backboneOutFeature = 50
+    backboneOutFeature = 100
     LinNum = 25
 
     MaxEpoch= 10000
     iter_to_accumul = 10
     MaxStep = 25
     MaxStepVal = 10000
-    bSizeTrn = 2
+    bSizeTrn = 8
     save_range= 10
-    modelLoadNum = 200
-    CROP = False
+    modelLoadNum = 500
+    CROP = [300,1500,0,1000]
     gpuUse = True
     whichModel= 'resnet50'
-    lossFuc = 'Huber'
+    lossFuc = 'L2'
+
 
 
     savingDir = mk_name(model=whichModel,backNum=backboneOutFeature,LinNum=LinNum,bS=bSizeTrn,iter=iter_to_accumul,loss=lossFuc)
@@ -67,6 +68,7 @@ if __name__ == '__main__':
             MaxStepVal=MaxStepVal,
             bSizeTrn=bSizeTrn,
             gpuUse=gpuUse,
+            CROP=CROP,
             data_folder_dir_test=data_folder_dir_test,
             whichModel=whichModel,
             bSizeVal=10, lr=3e-4, eps=1e-9)
@@ -84,16 +86,8 @@ if __name__ == '__main__':
             try:
                 torch.save(MODEL_START, modelPlotSaveDir + str(i) + '.pth')
                 print('saving model complete')
-                print('saving model complete')
-                print('saving model complete')
-                print('saving model complete')
-                print('saving model complete')
                 time.sleep(5)
             except:
-                print('saving model failed')
-                print('saving model failed')
-                print('saving model failed')
-                print('saving model failed')
                 print('saving model failed')
                 time.sleep(5)
 

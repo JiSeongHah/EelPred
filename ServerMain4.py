@@ -38,8 +38,8 @@ if __name__ == '__main__':
     MaxStepVal = 10000
     bSizeTrn =  6
     save_range= 10
-    modelLoadNum = 200
-    CROP = False
+    modelLoadNum = 900
+    CROP = [0,1000,300,1500]
     gpuUse = True
     whichModel= 'resnet50'
     lossFuc = 'Huber'
@@ -68,6 +68,7 @@ if __name__ == '__main__':
             MaxStepVal=MaxStepVal,
             bSizeTrn=bSizeTrn,
             gpuUse=gpuUse,
+            CROP=CROP,
             data_folder_dir_test=data_folder_dir_test,
             whichModel=whichModel,
             bSizeVal=10, lr=3e-4, eps=1e-9)
@@ -103,7 +104,7 @@ if __name__ == '__main__':
 
 
 
-    #
+
 
 
 

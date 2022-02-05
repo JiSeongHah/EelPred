@@ -32,6 +32,7 @@ class EelPredictor(nn.Module):
                  whichModel,
                  backboneOutFeature,
                  LinNum,
+                 CROP,
                  bSizeTrn= 8,
                  bSizeVal=1,
                  lr=3e-4,
@@ -56,6 +57,7 @@ class EelPredictor(nn.Module):
         self.backboneOutFeature = backboneOutFeature
         self.LinNum = LinNum
         self.lossFuc = lossFuc
+        self.CROP = CROP
 
         self.lr = lr
         self.eps = eps
@@ -108,16 +110,16 @@ class EelPredictor(nn.Module):
                                 # 0으로 나누는 것을 방지하기 위한 epsilon 값
                               )
 
-        MyTrnDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_trn,tLabelDir=self.labelDir,TEST=False)
+        MyTrnDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_trn,tLabelDir=self.labelDir,TEST=False,CROP=self.CROP)
         self.trainDataloader = DataLoader(MyTrnDataset,batch_size=self.bSizeTrn,shuffle=True)
 
-        MyValDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_val, tLabelDir=self.labelDir,TEST=False)
+        MyValDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_val, tLabelDir=self.labelDir,TEST=False,CROP=self.CROP)
         self.valLen = int(len(MyValDataset)/self.bSizeVal)
         if self.valLen < self.MaxStepVal:
             self.MaxStepVal = self.valLen
         self.valDataloader = DataLoader(MyValDataset, batch_size=self.bSizeVal, shuffle=False)
 
-        MyTestDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_test,tLabelDir=self.labelDir,TEST=True)
+        MyTestDataset = MyEelDataset(data_folder_dir=self.data_folder_dir_test,tLabelDir=self.labelDir,TEST=True,CROP=self.CROP)
         self.testLen = len(MyTestDataset)
         self.TestDataloader = DataLoader(MyTestDataset,batch_size=1,shuffle=False)
 
@@ -244,6 +246,8 @@ class EelPredictor(nn.Module):
         with torch.set_grad_enabled(False):
             for ImageName,TestBInput in self.TestDataloader:
 
+                ImageName = ImageName[0]
+
                 TestBInput = (TestBInput.float()).to(self.device)
 
                 TestBLogit = self.forward(TestBInput)
@@ -263,6 +267,7 @@ class EelPredictor(nn.Module):
             wr = csv.writer(f)
             wr.writerow(header)
             for ImageKey in ResultDict.keys():
+
                 wr.writerow([str(ImageKey),np.mean(ResultDict[ImageKey])])
                 print(f'appending {ImageKey} with {ResultDict[ImageKey]} complete')
 

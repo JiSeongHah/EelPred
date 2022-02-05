@@ -560,19 +560,23 @@ class MyEelDataset(torch.utils.data.Dataset):
         img = Image.open(full_data_dir)
         imgArr = np.asarray(img)
 
-        if self.CROP != None:
-            h1 = self.CROP[0]
-            h2 = self.CROP[1]
-            w1 = self.CROP[2]
-            w2 = self.CROP[3]
 
-            imgArr = imgArr[h1:h2,w1:w2,:]
+        if self.CROP != None:
+            w1 = self.CROP[0]
+            w2 = self.CROP[1]
+            h1 = self.CROP[2]
+            h2 = self.CROP[3]
+
+            imgArr = imgArr[w1:w2,h1:h2,:]
+
 
 
         input = torch.tensor(imgArr).float()
         input = input.permute(2,0,1)
 
         dataLabelName = str(dataFileName).split('_')[0]
+
+
 
         if self.TEST == False:
 
